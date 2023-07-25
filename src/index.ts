@@ -1,9 +1,9 @@
-import * as logger from 'koa-logger'
+import logger from 'koa-logger'
 import Koa from 'koa'
-import * as querystring from 'node:querystring'
-import * as path from 'node:path'
+import querystring from 'node:querystring'
+import path from 'node:path'
 import {promises as fs} from 'node:fs'
-import * as Router from '@koa/router'
+import Router from '@koa/router'
 import {RegistryResponse} from './npmTypes'
 
 const packagesDir = process.argv[2]

@@ -13,6 +13,6 @@ export default {
         json(),
         commonjs(),
         nodeResolve(),
-        typescript({outDir: 'rollup'})
+        typescript({outDir: 'rollup', module: 'esnext'})
     ]
 }

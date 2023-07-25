@@ -12,6 +12,7 @@
         "outDir": "dist",
         "rootDir": "src",
         "composite": true,
-        "allowSyntheticDefaultImports": true
+        "allowSyntheticDefaultImports": true,
+        "esModuleInterop": true
     }
 }
