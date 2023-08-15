@@ -7,9 +7,15 @@ import Router from '@koa/router'
 import {RegistryResponse} from './npmTypes'
 
 const packagesDir = process.argv[2]
+const port = Number(process.argv[3])
 if(packagesDir === undefined) {
     console.error('No packages directory specified!')
-    console.error(`Usage: ${process.argv[0]} ${process.argv[1]} <packages directory>`)
+    console.error(`Usage: ${process.argv[0]} ${process.argv[1]} <packages directory> <port>`)
+    process.exit(1)
+}
+if(port === undefined || isNaN(port)) {
+    console.error('No port specified!')
+    console.error(`Usage: ${process.argv[0]} ${process.argv[1]} <packages directory> <port>`)
     process.exit(1)
 }
 
@@ -51,5 +57,5 @@ router.get('/:id+/-/:version.tgz', async ctx => {
 })
 app.use(router.routes()).use(router.allowedMethods())
 
-app.listen(8080)
-console.log('Started listening!')
+app.listen(port)
+console.log(`Started listening on port ${port}!`)
