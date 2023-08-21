@@ -29,3 +29,15 @@ export interface RegistryResponse {
         }
     }
 }
+
+export interface PackageSubmission extends RegistryResponse {
+    _id: string
+    access: null
+    _attachments: {
+        [filename: string]: {
+            content_type: string
+            data: string
+            length: number
+        }
+    }
+}

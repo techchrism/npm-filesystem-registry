@@ -5,6 +5,7 @@ import path from 'node:path'
 import {promises as fs} from 'node:fs'
 import Router from '@koa/router'
 import {RegistryResponse} from './npmTypes'
+import koaBody from 'koa-body'
 
 const packagesDir = process.argv[2]
 const port = Number(process.argv[3])
@@ -21,6 +22,7 @@ if(port === undefined || isNaN(port)) {
 
 const app = new Koa()
 app.use(logger())
+app.use(koaBody())
 
 const router = new Router()
 router.get('/:id', async ctx => {
@@ -44,6 +46,7 @@ router.get('/:id', async ctx => {
         ctx.body = JSON.stringify(modified)
     } catch(ignored) {}
 })
+
 router.get('/:id+/-/:version.tgz', async ctx => {
     const pkg = querystring.unescape(ctx.params.id)
 
@@ -55,6 +58,44 @@ router.get('/:id+/-/:version.tgz', async ctx => {
         }
     } catch(ignored) {}
 })
+
+router.put('/:id', async ctx => {
+    const pkg = querystring.unescape(ctx.params.id)
+
+    try {
+        await fs.mkdir(path.join(packagesDir, pkg, 'versions'), {recursive: true})
+    } catch(ignored) {}
+
+    // Write attachments
+    for(const attachmentFile in ctx.request.body._attachments) {
+        const attachment = ctx.request.body._attachments[attachmentFile]
+        const cleanedName = attachmentFile.substring(attachmentFile.lastIndexOf('-') + 1)
+        await fs.writeFile(path.join(packagesDir, pkg, 'versions', cleanedName), Buffer.from(attachment.data, 'base64'))
+    }
+
+    const existingVersions = await (async () => {
+        try {
+            const existingReg = JSON.parse(await fs.readFile(path.join(packagesDir, pkg, 'registry.json'), 'utf-8')) as RegistryResponse
+            return existingReg.versions
+        } catch(e) {
+            return {}
+        }
+    })()
+
+    const {_id, access, _attachments, ...cleanData} = ctx.request.body
+    const newReg = {
+        ...cleanData,
+        versions: {
+            ...existingVersions,
+            ...cleanData.versions
+        },
+        modified: (new Date()).toISOString()
+    }
+    await fs.writeFile(path.join(packagesDir, pkg, 'registry.json'), JSON.stringify(newReg))
+
+    ctx.response.status = 200
+})
+
 app.use(router.routes()).use(router.allowedMethods())
 
 app.listen(port)
